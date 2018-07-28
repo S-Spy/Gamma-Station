@@ -11,6 +11,29 @@
 	var/heal_brute = 0
 	var/heal_burn = 0
 
+	attack(mob/living/carbon/M, mob/user, def_zone)
+		..()
+		if(user.skills)	switch(user.skills.medicine)	//Эффективность медицинского средства выражается в частоте его использований
+			if(1)
+				user.SetNextMove(CLICK_CD_INTERACT+rand(1, 3))
+				amount = max(0, amount-1)
+			if(2)
+				user.SetNextMove(CLICK_CD_INTERACT+rand(1, 2))
+				if(prob(70))	amount = max(0, amount-1)
+			if(3)
+				user.SetNextMove(CLICK_CD_INTERACT+rand(0, 1))
+				if(prob(40))	amount = max(0, amount-1)
+			if(4)
+				user.SetNextMove(CLICK_CD_INTERACT)
+				if(prob(10))	amount = max(0, amount-1)
+			if(5)
+				if(prob(5))		amount = min(max_amount, amount+1)
+			if(6)
+				if(prob(15))	amount = min(max_amount, amount+1)
+
+
+
+
 /obj/item/stack/medical/attack(mob/living/carbon/M, mob/user, def_zone)
 	if(!istype(M))
 		to_chat(user, "<span class='warning'>\The [src] cannot be applied to [M]!</span>")

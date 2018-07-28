@@ -50,13 +50,23 @@
 			chem_nullify_debuff = TRUE
 
 		if(wear_suit && wear_suit.slowdown && !(wear_suit.slowdown > 0 && chem_nullify_debuff))
-			tally += wear_suit.slowdown
+			var/spacesuit_mod = 1
+			if(skills)	switch(skills.EVA)
+				if(1 to 3)	spacesuit_mod = 1.5
+				if(5)		spacesuit_mod = 0.5
+				if(6)		spacesuit_mod = 0
+			tally += wear_suit.slowdown*spacesuit_mod
 
 		if(back && back.slowdown && !(back.slowdown > 0 && chem_nullify_debuff))
 			tally += back.slowdown
 
 		if(shoes && shoes.slowdown && !(shoes.slowdown > 0 && chem_nullify_debuff))
-			tally += shoes.slowdown
+			var/magboots_mod = shoes.slowdown
+			if(skills && shoes.slowdown>0 && istype(shoes, /obj/item/clothing/shoes/magboots))
+				switch(skills.EVA)	//Влияние скилла на магбутсы
+					if(5)	magboots_mod = SHOES_SLOWDOWN + (shoes.slowdown-SHOES_SLOWDOWN)/2
+					if(6)	magboots_mod = SHOES_SLOWDOWN
+			tally += magboots_mod
 
 		if(!chem_nullify_debuff)
 			for(var/x in list(l_hand, r_hand))

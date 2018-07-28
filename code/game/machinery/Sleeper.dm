@@ -209,32 +209,69 @@
 	add_fingerprint(usr)
 	return
 
+proc/Untranslated(var/T, var/translate = 0)
+	if(!translate)	return
+	var/list/Words = splittext(T, " ")
+	for(var/word in Words)
+		var/list/Chars = splittext(word, "")
+		word = ""
+		for(var/i=1, i<=Chars.len, i++)
+			var/C = pick(Chars)
+			Chars -= C
+			word += C
+
+	T = ""
+	for(var/word in Words)
+		T += word
+
+	return T
+
 /obj/machinery/sleeper/ui_interact(mob/user)
-	var/dat = "<h3>Sleeper Status</h3>"
+	var/utrans = 0
+	if(user.skills)	switch(user.skills.medicine)
+		if(1)	utrans = 3
+		if(2)	utrans = 2
+		if(3)	utrans = 1
+
+
+	var/dat = "<h3>[Untranslated("Sleeper Status", utrans)]</h3>"
 
 	dat += "<div class='statusDisplay'>"
 	if(!occupant)
-		dat += "Sleeper Unoccupied"
+		dat += "[Untranslated("Sleeper Unoccupied", utrans)]"
 	else
 		dat += "[occupant.name] => "
 		switch(occupant.stat)	//obvious, see what their status is
 			if(0)
-				dat += "<span class='good'>Conscious</span>"
+				dat += "<span class='good'>[Untranslated("Conscious", utrans)]</span>"
 			if(1)
-				dat += "<span class='average'>Unconscious</span>"
+				dat += "<span class='average'>[Untranslated("Unconscious", utrans)]</span>"
 			else
 				dat += "<span class='bad'>DEAD</span>"
 
 		dat += "<br />"
 
-		dat +=  "<div class='line'><div class='statusLabel'>Health:</div><div class='progressBar'><div style='width: [occupant.health]%;' class='progressFill good'></div></div><div class='statusValue'>[occupant.health]%</div></div>"
-		dat +=  "<div class='line'><div class='statusLabel'>\> Brute Damage:</div><div class='progressBar'><div style='width: [occupant.getBruteLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getBruteLoss()]%</div></div>"
-		dat +=  "<div class='line'><div class='statusLabel'>\> Resp. Damage:</div><div class='progressBar'><div style='width: [occupant.getOxyLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getOxyLoss()]%</div></div>"
-		dat +=  "<div class='line'><div class='statusLabel'>\> Toxin Content:</div><div class='progressBar'><div style='width: [occupant.getToxLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getToxLoss()]%</div></div>"
-		dat +=  "<div class='line'><div class='statusLabel'>\> Burn Severity:</div><div class='progressBar'><div style='width: [occupant.getFireLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getFireLoss()]%</div></div>"
+		var/list/random_buttons = list()
+		random_buttons +=  "<div class='line'><div class='statusLabel'>Health:</div><div class='progressBar'><div style='width: [occupant.health]%;' class='progressFill good'></div></div><div class='statusValue'>[occupant.health]%</div></div>"
+		random_buttons +=  "<div class='line'><div class='statusLabel'>\> [Untranslated("Brute Damage", utrans)]:</div><div class='progressBar'><div style='width: [occupant.getBruteLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getBruteLoss()]%</div></div>"
+		random_buttons +=  "<div class='line'><div class='statusLabel'>\> [Untranslated("Resp. Damage", utrans)]:</div><div class='progressBar'><div style='width: [occupant.getOxyLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getOxyLoss()]%</div></div>"
+		random_buttons +=  "<div class='line'><div class='statusLabel'>\> [Untranslated("Toxin Content", utrans)]:</div><div class='progressBar'><div style='width: [occupant.getToxLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getToxLoss()]%</div></div>"
+		random_buttons +=  "<div class='line'><div class='statusLabel'>\> [Untranslated("Burn Severity", utrans)]:</div><div class='progressBar'><div style='width: [occupant.getFireLoss()]%;' class='progressFill bad'></div></div><div class='statusValue'>[occupant.getFireLoss()]%</div></div>"
 
-		dat += "<HR><div class='line'><div class='statusLabel'>Paralysis Summary:</div><div class='statusValue'>[round(occupant.paralysis)]% [occupant.paralysis ? "([round(occupant.paralysis / 4)] seconds left)" : ""]</div></div>"
-		dat += "<HR><div class='line'><div class='statusLabel'>Paralysis Summary:</div><div class='statusValue'>[round(occupant.paralysis)]% [occupant.paralysis ? "([round(occupant.paralysis / 4)] seconds left)" : ""]</div></div>"
+
+		if(utrans > 0)
+			for(var/i=1, i<=10, i++)
+				if(!prob(30*utrans))	continue
+				var/T = pick(random_buttons)
+				random_buttons.Remove(T)
+				random_buttons.Add(T)
+
+		for(var/i=1, i<=5, i++)
+			dat += random_buttons[i]
+
+
+
+		dat += "<HR><div class='line'><div class='statusLabel'>[Untranslated("Paralysis Summary", utrans)]:</div><div class='statusValue'>[round(occupant.paralysis)]% [occupant.paralysis ? "([round(occupant.paralysis / 4)] seconds left)" : ""]</div></div>"
 		if(occupant.reagents.reagent_list.len)
 			for(var/datum/reagent/R in occupant.reagents.reagent_list)
 				dat += text("<div class='line'><div class='statusLabel'>[R.name]:</div><div class='statusValue'>[] units</div></div>", round(R.volume, 0.1))
@@ -250,30 +287,30 @@
 	if(src.beaker)
 		dat += "<A href='?src=\ref[src];removebeaker=1'>Remove Beaker</A>"
 		if(filtering)
-			dat += "<A href='?src=\ref[src];togglefilter=1'>Stop Dialysis</A>"
+			dat += "<A href='?src=\ref[src];togglefilter=1'>[Untranslated("Stop Dialysis", utrans)]</A>"
 			dat += text("<BR>Output Beaker has [] units of free space remaining<BR><HR>", src.beaker.reagents.maximum_volume - src.beaker.reagents.total_volume)
 		else
-			dat += "<A href='?src=\ref[src];togglefilter=1'>Start Dialysis</A>"
+			dat += "<A href='?src=\ref[src];togglefilter=1'>[Untranslated("Start Dialysis", utrans)]</A>"
 			dat += text("<BR>Output Beaker has [] units of free space remaining", src.beaker.reagents.maximum_volume - src.beaker.reagents.total_volume)
 	else
-		dat += "<BR>No Dialysis Output Beaker is present."
+		dat += "<BR>[Untranslated("No Dialysis Output Beaker is present.", utrans)]"
 
 	dat += "<h3>Injector</h3>"
 
 	if(src.occupant)
-		dat += "<A href='?src=\ref[src];inject=inaprovaline'>Inject Inaprovaline</A>"
+		dat += "<A href='?src=\ref[src];inject=inaprovaline'>[Untranslated("Inject Inaprovaline", utrans)]</A>"
 	else
-		dat += "<span class='linkOff'>Inject Inaprovaline</span>"
+		dat += "<span class='linkOff'>[Untranslated("Inject Inaprovaline", utrans)]</span>"
 	if(occupant && occupant.health > min_health)
 		for(var/re in available_chems)
 			var/datum/reagent/C = chemical_reagents_list[re]
 			if(C)
-				dat += "<BR><A href='?src=\ref[src];inject=[C.id]'>Inject [C.name]</A>"
+				dat += "<BR><A href='?src=\ref[src];inject=[C.id]'>[Untranslated("Inject [C.name]", utrans)]</A>"
 	else
 		for(var/re in available_chems)
 			var/datum/reagent/C = chemical_reagents_list[re]
 			if(C)
-				dat += "<BR><span class='linkOff'>Inject [C.name]</span>"
+				dat += "<BR><span class='linkOff'>[Untranslated("Inject [C.name]", utrans)]</span>"
 
 	var/datum/browser/popup = new(user, "sleeper", "Sleeper Console", 520, 540)	//Set up the popup browser window
 	popup.set_title_image(user.browse_rsc_icon(icon, icon_state))

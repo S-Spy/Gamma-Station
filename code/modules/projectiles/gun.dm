@@ -45,8 +45,10 @@
 	return 0
 
 /obj/item/weapon/gun/proc/special_check(mob/M, atom/target) //Placeholder for any special checks, like detective's revolver. or wizards
-	if(M.mind.special_role == "Wizard")
-		return FALSE
+	if(M.mind.special_role == "Wizard")			return FALSE
+	else if(M.skills && M.skills.rangecomb<2 && ishuman(target))	return FALSE
+	else if(M.skills && M.skills.rangecomb<4 && prob(round(80/M.skills.rangecomb)) )	return FALSE//Так же на шанс НЕ выстрелить влияет навык
+
 	return TRUE
 
 /obj/item/weapon/gun/proc/shoot_with_empty_chamber(mob/living/user)
@@ -81,6 +83,40 @@
 	else
 		Fire(A,user,params) //Otherwise, fire normally.
 
+
+
+/mob/proc/shake_hud(var/skill=4)	//Тряска экрана
+	if(!client)
+		return
+
+	var/old_x = src.x
+	var/old_y = src.y
+
+	for(var/i=1, i<=rand(5, 7)-skill, i++)
+
+		var/new_x = pick(-1, 1)
+		var/new_y = pick(-1, 1)
+
+		if(old_x+new_x == src.x && old_y+new_y == src.y)
+			new_x *= -1
+
+		old_x = src.x+new_x
+		old_y = src.y+new_y
+
+
+		client.eye = locate(src.x+new_x, src.y+new_y, src.z)
+		sleep()
+
+	client.eye = src
+
+/obj/item/weapon/gun/attackby(obj/item/A, mob/user)
+	var/mod = 0
+	if(user.skills)
+		mod = 5-user.skills
+	user.SetNextMove(max(0, CLICK_CD_INTERACT+mod))
+	..()
+
+
 /obj/item/weapon/gun/proc/Fire(atom/target, mob/living/user, params, reflex = 0)//TODO: go over this
 	//Exclude lasertag guns from the CLUMSY check.
 	if(!user.IsAdvancedToolUser())
@@ -88,6 +124,7 @@
 		return
 	if(isliving(user))
 		var/mob/living/M = user
+
 		if (HULK in M.mutations)
 			to_chat(M, "<span class='red'>Your meaty finger is much too large for the trigger guard!</span>")
 			return
@@ -123,6 +160,7 @@
 	if(!special_check(user, target))
 		return
 
+
 	if (!ready_to_fire())
 		if (world.time % 3) //to prevent spam
 			to_chat(user, "<span class='warning'>[src] is not ready to fire again!</span>")
@@ -137,6 +175,7 @@
 	process_chamber()
 	user.newtonian_move(get_dir(target, user))
 	update_icon()
+	user.shake_hud()
 
 	if(user.hand)
 		user.update_inv_l_hand()

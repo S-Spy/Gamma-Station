@@ -1,4 +1,6 @@
-/mob/living/carbon/human/attack_hand(mob/living/carbon/human/M)
+/mob/living/carbon/human/attack_hand(mob/living/carbon/human/M, var/mod_intent)
+
+
 	if (istype(loc, /turf) && istype(loc.loc, /area/start))
 		to_chat(M, "No attacking people at spawn, you jackass.")
 		return
@@ -7,6 +9,12 @@
 	if((M != src) && check_shields(0, M.name, get_dir(M,src)))
 		visible_message("\red <B>[M] attempted to touch [src]!</B>")
 		return 0
+
+	if(wear_suit && istype(wear_suit, /obj/item/clothing/suit/space))
+		if(skills)	switch(skills.EVA)	//Общее замедление действий для игроков в скафандрах
+			if(1)	sleep(3)
+			if(2)	sleep(2)
+			if(3)	sleep(1)
 
 	if(M.wear_suit && istype(M.wear_suit, /obj/item/clothing/suit))
 		var/obj/item/clothing/suit/V = M.wear_suit
@@ -80,6 +88,7 @@
 			M.spread_disease_to(src, "Contact")
 
 
+
 	switch(M.a_intent)
 		if("help")
 			if(health < config.health_threshold_crit && health > config.health_threshold_dead)
@@ -135,37 +144,69 @@
 			return 1
 
 		if("hurt")
-			M.do_attack_animation(src)
-			var/datum/unarmed_attack/attack = M.species.unarmed
-
-			M.attack_log += text("\[[time_stamp()]\] <font color='red'>[pick(attack.attack_verb)]ed [src.name] ([src.ckey])</font>")
-			src.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been [pick(attack.attack_verb)]ed by [M.name] ([M.ckey])</font>")
-			msg_admin_attack("[key_name(M)] [pick(attack.attack_verb)]ed [key_name(src)]")
-
-			var/damage = rand(0, 5)//BS12 EDIT
-			if(!damage)
-				playsound(loc, attack.miss_sound, 25, 1, -1)
-				visible_message("\red <B>[M] tried to [pick(attack.attack_verb)] [src]!</B>")
-				return 0
+			var/attack_count = 1
+			if(skills)	switch(skills.closecomb)
+				if(1)	SetNextMove(CLICK_CD_MELEE+rand(0, 3))
+				if(2)	SetNextMove(CLICK_CD_MELEE+rand(0, 2))
+				if(3)	SetNextMove(CLICK_CD_MELEE+rand(0, 1))
+				if(5)	attack_count = pick(100; 1, 30; 2)
+				if(6)	attack_count = pick(100; 1, 50; 2, 30; 3)
 
 
+			for(var/i=1, i<=attack_count, i++)
+				M.do_attack_animation(src)
+				var/datum/unarmed_attack/attack = M.species.unarmed
 
-			var/obj/item/organ/external/BP = bodyparts_by_name[ran_zone(M.zone_sel.selecting)]
-			var/armor_block = run_armor_check(BP, "melee")
+				M.attack_log += text("\[[time_stamp()]\] <font color='red'>[pick(attack.attack_verb)]ed [src.name] ([src.ckey])</font>")
+				src.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been [pick(attack.attack_verb)]ed by [M.name] ([M.ckey])</font>")
+				msg_admin_attack("[key_name(M)] [pick(attack.attack_verb)]ed [key_name(src)]")
 
-			if(HULK in M.mutations)			damage += 5
+				var/damage = rand(0, 5)//BS12 EDIT
+				if(skills)
+					switch(skills.closecomb)
+						if(1)
+							if(prob(20))	damage = 0
+						if(2)
+							if(prob(10))	damage = 0
+						if(3)
+							if(prob(5))		damage = 0
+						if(4)	damage *= 1
+						if(5)	damage *= 1.2
+						if(6)	damage *= 1.5
 
 
-			playsound(loc, attack.attack_sound, 25, 1, -1)
+				if(!damage)
+					src.attack_missed(pick(attack.attack_verb), M, attack.miss_sound)
+					return 0
 
-			visible_message("\red <B>[M] [pick(attack.attack_verb)]ed [src]!</B>")
-			//Rearranged, so claws don't increase weaken chance.
-			if(damage >= 5 && prob(50))
-				visible_message("\red <B>[M] has weakened [src]!</B>")
-				apply_effect(2, WEAKEN, armor_block)
 
-			damage += attack.damage
-			apply_damage(damage, BRUTE, BP, armor_block, attack.damage_flags())
+
+				var/obj/item/organ/external/BP = bodyparts_by_name[ran_zone(M.zone_sel.selecting)]
+				var/armor_block = run_armor_check(BP, "melee")
+
+				if(HULK in M.mutations)			damage += 5
+
+
+				playsound(loc, attack.attack_sound, 25, 1, -1)
+
+				visible_message("\red <B>[M] [pick(attack.attack_verb)]ed [src]!</B>")
+				//Rearranged, so claws don't increase weaken chance.
+				if(damage >= 5 && prob(50))
+					visible_message("\red <B>[M] has weakened [src]!</B>")
+					apply_effect(2, WEAKEN, armor_block)
+
+				damage += attack.damage
+				if(skills)
+					switch(skills.closecomb)
+						if(1)	damage *= 0.5
+						if(2)	damage *= 0.75
+						if(3)	damage *= 1
+						if(4)	damage *= 1
+						if(5)	damage *= 1.2
+						if(6)	damage *= 1.5
+
+
+				apply_damage(max(1, round(damage)), BRUTE, BP, armor_block, attack.damage_flags())
 
 
 		if("disarm")
@@ -199,8 +240,29 @@
 					var/turf/target = pick(turfs)
 					return W.afterattack(target,src)
 
+			var/push_prob = 25
+			var/disarm_prob = 60
+
+			if(skills)	switch(skills.closecomb)
+				if(1)
+					push_prob = 10
+					disarm_prob = 30
+				if(2)
+					push_prob = 15
+					disarm_prob = 40
+				if(3)
+					push_prob = 20
+					disarm_prob = 50
+				if(5)
+					push_prob = 30
+					disarm_prob = 70
+				if(6)
+					push_prob = 35
+					disarm_prob = 80
+
+
 			var/randn = rand(1, 100)
-			if (randn <= 25)
+			if (randn <= push_prob)
 				var/armor_check = run_armor_check(BP, "melee")
 				apply_effect(3, WEAKEN, armor_check)
 				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
@@ -212,7 +274,7 @@
 
 			var/talked = 0	// BubbleWrap
 
-			if(randn <= 60)
+			if(randn <= disarm_prob)
 				//BubbleWrap: Disarming breaks a pull
 				if(pulling)
 					visible_message("\red <b>[M] has broken [src]'s grip on [pulling]!</B>")
@@ -242,7 +304,16 @@
 					else
 						drop_item()
 						visible_message("\red <B>[M] has disarmed [src]!</B>")
+
 				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
+
+				if(M.skills)	switch(M.skills.closecomb)
+					if(5)
+						if(prob(5) && M.get_active_hand())
+							attackby(M.get_active_hand(), src)
+					if(6)
+						if(prob(15) && M.get_active_hand())
+							attackby(M.get_active_hand(), src)
 				return
 
 

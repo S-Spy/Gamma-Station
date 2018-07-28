@@ -142,7 +142,7 @@
 
 /obj/item/weapon/gun/projectile/revolver/russian/attackby(obj/item/A, mob/user)
 	var/num_loaded = ..()
-	user.SetNextMove(CLICK_CD_INTERACT)
+	user.SetNextMove(CLICK_CD_INTERACT)//Револьвер будет обходом правила темпа для слабых персонажей
 	if(num_loaded)
 		user.visible_message("<span class='warning'>[user] loads a single bullet into the revolver and spins the chamber.</span>", "<span class='warning'>You load a single bullet into the chamber and spin it.</span>")
 	else

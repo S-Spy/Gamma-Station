@@ -815,6 +815,16 @@
 
 	//resisting grabs (as if it helps anyone...)
 	if (!L.stat && !L.restrained())
+
+		var/resist_prob = 4
+		if(skills)	switch(skills.closecomb)
+			if(2)	resist_prob = 5
+			if(3)	resist_prob = 6
+			if(4)	resist_prob = 7
+			if(5)	resist_prob = 8
+			if(6)	resist_prob = 9
+
+
 		if(L.stunned > 2 || L.weakened > 2)
 			return
 		var/resisting = 0
@@ -828,11 +838,11 @@
 				if(GRAB_PASSIVE)
 					qdel(G)
 				if(GRAB_AGGRESSIVE)
-					if(prob(50 - (L.lying ? 35 : 0)))
+					if(prob(resist_prob*7 - (L.lying ? 35 : 0)))
 						L.visible_message("<span class='danger'>[L] has broken free of [G.assailant]'s grip!</span>")
 						qdel(G)
 				if(GRAB_NECK)
-					if(prob(5 - L.stunned * 2))
+					if(prob(resist_prob - L.stunned * 2))
 						L.visible_message("<span class='danger'>[L] has broken free of [G.assailant]'s headlock!</span>")
 						qdel(G)
 		if(resisting)

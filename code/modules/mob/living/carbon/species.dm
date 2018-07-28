@@ -65,6 +65,7 @@
 	//Used in icon caching.
 	var/race_key = 0
 	var/icon/icon_template
+	var/datum/skills/skills_modificator = new/datum/skills/neutral_mod
 
 	/* Species-specific sprites, concept stolen from Paradise//vg/.
 	ex:
@@ -207,6 +208,15 @@
 	flesh_color = "#34AF10"
 	base_color = "#066000"
 
+	New()
+		..()
+		skills_modificator.EVA = 1
+		skills_modificator.closecomb = 1
+		skills_modificator.rangecomb = 1
+		skills_modificator.surgery = 1
+		skills_modificator.rnd = -1
+		skills_modificator.cookery = -1
+
 /datum/species/tajaran
 	name = TAJARAN
 	icobase = 'icons/mob/human_races/r_tajaran.dmi'
@@ -245,6 +255,15 @@
 	flesh_color = "#AFA59E"
 	base_color = "#333333"
 
+	New()
+		..()
+		skills_modificator.hacking = 1
+		skills_modificator.closecomb = 1
+		skills_modificator.medicine = 1
+		skills_modificator.chemistry = 1
+		skills_modificator.construction = -1
+		skills_modificator.robotics = -1
+
 /datum/species/skrell
 	name = SKRELL
 	icobase = 'icons/mob/human_races/r_skrell.dmi'
@@ -274,6 +293,15 @@
 	eyes = "skrell_eyes"
 	blood_color = /datum/dirt_cover/purple_blood
 	flesh_color = "#8CD7A3"
+
+	New()
+		..()
+		skills_modificator.EVA = 1
+		skills_modificator.genetics = 1
+		skills_modificator.xenoscience = 1
+		skills_modificator.rnd = 1
+		skills_modificator.closecomb = -1
+		skills_modificator.rangecomb = -1
 
 /datum/species/vox
 	name = VOX
@@ -448,6 +476,15 @@
 	flesh_color = "#907E4A"
 
 	has_gendered_icons = FALSE
+
+	New()
+		..()
+		skills_modificator.xenoscience = 1
+		skills_modificator.botany = 1
+		skills_modificator.medicine = 1
+		skills_modificator.chemistry = 1
+		skills_modificator.rnd = -1
+		skills_modificator.robotics = -1
 
 /datum/species/diona/handle_post_spawn(mob/living/carbon/human/H)
 	H.gender = NEUTER

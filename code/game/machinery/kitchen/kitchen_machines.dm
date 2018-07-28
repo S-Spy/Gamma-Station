@@ -203,7 +203,12 @@
 		var/list/items_counts = new
 		var/list/items_measures = new
 		var/list/items_measures_p = new
+		var/list/reagent_types_count = list()//Влияние навыка кулинарии на готовку
+
 		for (var/obj/O in contents)
+			if(!(O.type in reagent_types_count))
+				reagent_types_count += O.type
+
 			var/display_name = O.name
 			if (istype(O,/obj/item/weapon/reagent_containers/food/snacks/egg))
 				items_measures[display_name] = "egg"
@@ -233,6 +238,8 @@
 					dat += "[capitalize(O)]: [N] [items_measures_p[O]]<BR>"
 
 		for (var/datum/reagent/R in reagents.reagent_list)
+			if(!(R.type in reagent_types_count))
+				reagent_types_count += R.type
 			var/display_name = R.name
 			if (R.id == "capsaicin")
 				display_name = "Hotsauce"
@@ -244,7 +251,49 @@
 			dat += "[src] is empty.</div>"
 		else
 			dat = "<h3>Ingredients:</h3>[dat]</div>"
-		dat += "<A href='?src=\ref[src];action=cook'>Turn on</A>"
+
+
+
+
+		var/skill_probe = 100
+		var/toxin_probe = 0 //Шанс пережарить или недожарить
+		var/microwave_broke_probe = 0
+		if(user.skills && reagent_types_count.len)	switch(user.skills.cookery)
+			if(1)
+				switch(reagent_types_count)
+					if(0 to 2)	skill_probe = 40
+					if(3 to 4)	skill_probe = 30
+					if(5)		skill_probe = 20
+					else		skill_probe = 10
+				toxin_probe = 8
+				microwave_broke_probe = 5
+			if(2)
+				switch(reagent_types_count)
+					if(0 to 2)	skill_probe = 70
+					if(3 to 4)	skill_probe = 40
+					if(5)		skill_probe = 30
+					else		skill_probe = 20
+				toxin_probe = 4
+			if(3)
+				switch(reagent_types_count)
+					if(0 to 2)	skill_probe = 100
+					if(3 to 4)	skill_probe = 70
+					if(5)		skill_probe = 50
+					else		skill_probe = 30
+				toxin_probe = 2
+			if(4)
+				switch(reagent_types_count)
+					if(0 to 4)	skill_probe = 100
+					if(5)		skill_probe = 70
+					else		skill_probe = 40
+			if(5)
+				switch(reagent_types_count)
+					if(0 to 5)	skill_probe = 100
+					else		skill_probe = 70
+
+
+
+		dat += "<A href='?src=\ref[src];action=cook;skill_probe=[skill_probe];toxin_probe=[toxin_probe];microwave_broke_probe=[microwave_broke_probe]'>Turn on</A>"
 		dat += "<A href='?src=\ref[src];action=dispose'>Eject ingredients</A>"
 
 	var/datum/browser/popup = new(user, name, name, 400, 400)
@@ -256,7 +305,7 @@
 *   Kitchen Machine Handling/Cooking
 ************************************/
 
-/obj/machinery/kitchen_machine/proc/cook()
+/obj/machinery/kitchen_machine/proc/cook(var/skill_probe=100, var/toxin_probe=0, var/microwave_broke_probe=0)
 	if(stat & (NOPOWER|BROKEN))
 		return
 	start()
@@ -270,9 +319,12 @@
 	var/datum/recipe/recipe = select_recipe(available_recipes,src)
 	var/obj/cooked
 	var/obj/byproduct
-	if (!recipe)
+	var/microwave_is_broke = 0
+	if(istype(src, /obj/machinery/kitchen_machine/microwave))
+		microwave_is_broke = prob(microwave_broke_probe)
+	if (!recipe || !prob(skill_probe) || microwave_is_broke)
 		dirty += 1
-		if (prob(max(10,dirty*5)))
+		if(prob(max(10,dirty*5)))
 			if (!cook_process(4))
 				abort()
 				return
@@ -282,7 +334,7 @@
 			cooked = fail()
 			cooked.loc = src.loc
 			return
-		else if (has_extra_item())
+		else if (has_extra_item() || microwave_is_broke)
 			if (!cook_process(4))
 				abort()
 				return
@@ -313,6 +365,9 @@
 		stop()
 		if(cooked)
 			cooked.loc = src.loc
+			if(prob(toxin_probe))
+				cooked.reagents.add_reagent("raw_food",1)
+				cooked.desc += " It's raw food!"
 		for(var/i=1,i<efficiency,i++)
 			cooked = new cooked.type(loc)
 		if(byproduct)
@@ -422,7 +477,7 @@
 
 	switch(href_list["action"])
 		if ("cook")
-			cook()
+			cook(href_list["skill_probe"], href_list["toxin_probe"], href_list["microwave_broke_probe"])
 
 		if ("dispose")
 			dispose()

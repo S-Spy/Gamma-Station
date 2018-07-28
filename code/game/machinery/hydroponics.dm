@@ -623,27 +623,31 @@ obj/machinery/hydroponics/proc/mutatespecie() // Mutagent produced a new plant!
 			to_chat(user, "<span class='warning'>[src] already has seeds in it!</span>")
 
 	else if (istype(O, /obj/item/device/plant_analyzer))
+		var/skill_level = 4//Влияние навыка на понимание данных с анализатора
+		if(user.skills)
+			skill_level = user.skills.botany
+
 		if(planted && myseed)
 			to_chat(user, "*** <B>[myseed.plantname]</B> ***")//Carn: now reports the plants growing, not the seeds.
 			to_chat(user, "-Plant Age: \blue [age]")
-			to_chat(user, "-Plant Endurance: \blue [myseed.endurance]")
-			to_chat(user, "-Plant Lifespan: \blue [myseed.lifespan]")
+			to_chat(user, (skill_level>=4) ? "-Plant Endurance: \blue [myseed.endurance]" : "-You something about Plant Endurance, but can't understand it!")
+			to_chat(user, (skill_level>=2) ? "-Plant Lifespan: \blue [myseed.lifespan]" : "-You something about Plant Lifespan, but can't understand it!")
 			if(myseed.yield != -1)
-				to_chat(user, "-Plant Yield: \blue [myseed.yield]")
-			to_chat(user, "-Plant Production: \blue [myseed.production]")
+				to_chat(user, (skill_level>=2) ? "-Plant Yield: \blue [myseed.yield]" : "-You something about Plant Yield, but can't understand it!")
+			to_chat(user, (skill_level>=2) ? "-Plant Production: \blue [myseed.production]" : "-You something about Plant Production, but can't understand it!")
 			if(myseed.potency != -1)
-				to_chat(user, "-Plant Potency: \blue [myseed.potency]")
-			to_chat(user, "-Weed level: \blue [weedlevel]/10")
-			to_chat(user, "-Pest level: \blue [pestlevel]/10")
-			to_chat(user, "-Toxicity level: \blue [toxic]/100")
+				to_chat(user, (skill_level>=4) ? "-Plant Potency: \blue [myseed.potency]" : "-You something about Plant Potency, but can't understand it!")
+			to_chat(user, (skill_level>=2) ? "-Weed level: \blue [weedlevel]/10" : "-You something about Weed level, but can't understand it!")
+			to_chat(user, (skill_level>=3) ? "-Pest level: \blue [pestlevel]/10" : "-You something about Pest level, but can't understand it!")
+			to_chat(user, (skill_level>=3) ? "-Toxicity level: \blue [toxic]/100" : "-You something about Toxicity level, but can't understand it!")
 			to_chat(user, "-Water level: <span class='notice'> [waterlevel]/[maxwater]</span>")
 			to_chat(user, "-Nutrition level: <span class='notice'> [nutrilevel]/[maxnutri]</span>")
 			to_chat(user, "")
 		else
 			to_chat(user, "<B>No plant found.</B>")
-			to_chat(user, "-Weed level: \blue [weedlevel]/10")
-			to_chat(user, "-Pest level: \blue [pestlevel]/10")
-			to_chat(user, "-Toxicity level: \blue [toxic]/100")
+			to_chat(user, (skill_level>=2) ? "-Weed level: \blue [weedlevel]/10" : "-You something about Weed level, but can't understand it!")
+			to_chat(user, (skill_level>=3) ? "-Pest level: \blue [pestlevel]/10" : "-You something about Pest level, but can't understand it!")
+			to_chat(user, (skill_level>=3) ? "-Toxicity level: \blue [toxic]/100" : "-You something about Toxicity level, but can't understand it!")
 			to_chat(user, "-Water level: <span class='notice'> [waterlevel]/[maxwater]</span>")
 			to_chat(user, "-Nutrition level: <span class='notice'> [nutrilevel]/[maxnutri]</span>")
 			to_chat(user, "")
@@ -743,6 +747,11 @@ obj/machinery/hydroponics/proc/mutatespecie() // Mutagent produced a new plant!
 		return
 	if(issilicon(user))//AI doesn't know what is planted
 		return TRUE
+
+	var/skill_level = 4
+	if(user.skills)
+		skill_level = user.skills.botany
+
 	if(harvest)
 		if(!in_range(src, user))
 			return TRUE
@@ -760,8 +769,11 @@ obj/machinery/hydroponics/proc/mutatespecie() // Mutagent produced a new plant!
 				to_chat(user, "The plant looks unhealthy.")
 		else
 			to_chat(user, "[src] is empty.")
+
+
+
 		to_chat(user, "Water: [waterlevel]/[maxwater]")
-		to_chat(user, "Nutrient: [nutrilevel]/[maxnutri]")
+		to_chat(user, (skill_level>=2) ? "Nutrient: [nutrilevel]/[maxnutri]" : ((nutrilevel>0)?"Some dirt":"It's clear."))
 		if(weedlevel >= 5) // Visual aid for those blind
 			to_chat(user, "[src] is filled with weeds!")
 		if(pestlevel >= 5) // Visual aid for those blind
@@ -775,12 +787,23 @@ obj/machinery/hydroponics/proc/mutatespecie() // Mutagent produced a new plant!
 	return (yield * parent.yieldmod)
 
 /obj/item/seeds/proc/harvest(mob/user = usr)
+	var/skill_level = 4 //Влияние навыка на обьем собираемого урожая
+	if(user.skills)
+		skill_level = user.skills.botany
+
+
 	var/produce = text2path(productname)
 	var/obj/machinery/hydroponics/parent = loc //for ease of access
 	var/t_amount = 0
 	var/list/result = list()
 	var/output_loc = parent.Adjacent(user) ? user.loc : parent.loc //needed for TK
-	while(t_amount < getYield())
+
+	var/result_count = getYield()
+	if(skill_level<4)	result_count = rand(round(result_count*skill_level/4), result_count)
+	else if( skill_level>4 && prob(40*(skill_level-4)) )
+		result_count *= pick(1.5, 1.75)
+
+	while(t_amount < result_count)
 		var/obj/item/weapon/reagent_containers/food/snacks/grown/t_prod = new produce(output_loc, potency)
 		result.Add(t_prod) // User gets a consumable
 		if(!t_prod)

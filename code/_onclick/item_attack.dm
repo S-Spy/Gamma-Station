@@ -5,6 +5,13 @@
 
 // No comment
 /atom/proc/attackby(obj/item/W, mob/user, params)
+	if(istype(user, /mob/living/carbon/human))
+		var/mob/living/carbon/human/M = user
+		if(M.wear_suit && istype(M.wear_suit, /obj/item/clothing/suit/space))
+			if(M.skills)	switch(M.skills.EVA)	//Общее замедление действий для игроков в скафандрах
+				if(1)	sleep(3)
+				if(2)	sleep(2)
+				if(3)	sleep(1)
 	return
 
 /atom/movable/attackby(obj/item/W, mob/user, params)
@@ -14,27 +21,49 @@
 	if(W && !(W.flags & NOBLUDGEON))
 		visible_message("<span class='danger'>[src] has been hit by [user] with [W].</span>")
 
+/mob/proc/attack_missed(var/attack_verb, var/mob/target, var/miss_sound = 'sound/weapons/punchmiss.ogg')
+	playsound(loc, miss_sound, 25, 1, -1)
+	visible_message("\red <B>[target] tried to [attack_verb] [src]!</B>")
+
 /mob/living/attackby(obj/item/I, mob/user, params)
 	if(!istype(I) || !ismob(user))
 		return
 	user.SetNextMove(CLICK_CD_MELEE)
 
-	if(user.zone_sel && user.zone_sel.selecting)
-		I.attack(src, user, user.zone_sel.selecting)
+	var/prob_miss = 20 //Модификатор урона согласно навыку
+	if(user.skills)	switch(user.skills.closecomb)
+		if(1)
+			prob_miss = 40
+			user.SetNextMove(CLICK_CD_MELEE+rand(0, 3))//Непрофессиональные удары могут быть медленнее
+		if(2)
+			prob_miss = 30
+			user.SetNextMove(CLICK_CD_MELEE+rand(0, 2))
+		if(3)
+			prob_miss = 25
+			user.SetNextMove(CLICK_CD_MELEE+rand(0, 1))
+		if(5)	prob_miss = 10
+		if(6)	prob_miss = 5
+
+	if(!prob(prob_miss))
+		if(user.zone_sel && user.zone_sel.selecting)
+			I.attack(src, user, user.zone_sel.selecting)
+		else
+			I.attack(src, user)
+
+		if(ishuman(user))	//When abductor will hit someone from stelth he will reveal himself
+			var/mob/living/carbon/human/H = user
+			if(istype(H.wear_suit, /obj/item/clothing/suit))
+				var/obj/item/clothing/suit/V = H.wear_suit
+				V.attack_reaction(H, REACTION_INTERACT_ARMED, src)
+
+		if(ishuman(src))
+			var/mob/living/carbon/human/H = src
+			if(istype(H.wear_suit, /obj/item/clothing/suit))
+				var/obj/item/clothing/suit/V = H.wear_suit
+				V.attack_reaction(src, REACTION_ATACKED, user)
 	else
-		I.attack(src, user)
+		user.attack_missed("attack with [I.name]", src)
 
-	if(ishuman(user))	//When abductor will hit someone from stelth he will reveal himself
-		var/mob/living/carbon/human/H = user
-		if(istype(H.wear_suit, /obj/item/clothing/suit))
-			var/obj/item/clothing/suit/V = H.wear_suit
-			V.attack_reaction(H, REACTION_INTERACT_ARMED, src)
-
-	if(ishuman(src))
-		var/mob/living/carbon/human/H = src
-		if(istype(H.wear_suit, /obj/item/clothing/suit))
-			var/obj/item/clothing/suit/V = H.wear_suit
-			V.attack_reaction(src, REACTION_ATACKED, user)
 
 	if(attempt_harvest(I, user))
 		return
@@ -46,6 +75,15 @@
 
 
 /obj/item/proc/attack(mob/living/M, mob/living/user, def_zone)
+	var/dmg_mod = 1 //Модификатор урона согласно навыку
+	if(user.skills)	switch(user.skills.closecomb)
+		if(1)	dmg_mod = 0.5
+		if(2)	dmg_mod = 0.75
+		if(3)	dmg_mod = 1
+		if(4)	dmg_mod = 1
+		if(5)	dmg_mod = 1.2
+		if(6)	dmg_mod = 1.5
+
 	var/messagesource = M
 	if (can_operate(M))        //Checks if mob is lying down on table for surgery
 		if (do_surgery(M,user,src))
@@ -62,9 +100,9 @@
 				if(!protected)
 					//TODO: better alternative for applying damage multiple times? Nice knifing sound?
 					var/damage_flags = damage_flags()
-					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
-					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
-					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
+					M.apply_damage(round(dmg_mod*20), BRUTE, BP_HEAD, null, damage_flags)
+					M.apply_damage(round(dmg_mod*20), BRUTE, BP_HEAD, null, damage_flags)
+					M.apply_damage(round(dmg_mod*20), BRUTE, BP_HEAD, null, damage_flags)
 					M.adjustOxyLoss(60) // Brain lacks oxygen immediately, pass out
 					playsound(loc, 'sound/effects/throat_cutting.ogg', 50, 1, 1)
 					flick(G.hud.icon_state, G.hud)
@@ -83,6 +121,9 @@
 	user.lastattacked = M
 	M.lastattacker = user
 	user.do_attack_animation(M)
+
+	add_fingerprint(user)
+
 
 	user.attack_log += "\[[time_stamp()]\]<font color='red'> Attacked [M.name] ([M.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
 	M.attack_log += "\[[time_stamp()]\]<font color='orange'> Attacked by [user.name] ([user.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
@@ -189,11 +230,11 @@
 		switch(damtype)
 			if("brute")
 				if(istype(src, /mob/living/carbon/slime))
-					M.adjustBrainLoss(power)
+					M.adjustBrainLoss(round(dmg_mod*power))
 
 				else
 
-					M.take_bodypart_damage(power)
+					M.take_bodypart_damage(round(dmg_mod*power))
 					if (prob(33)) // Added blood for whacking non-humans too
 						var/turf/location = M.loc
 						if (istype(location, /turf/simulated))
@@ -203,5 +244,5 @@
 					M.take_bodypart_damage(0, power)
 					to_chat(M, "Aargh it burns!")
 		M.updatehealth()
-	add_fingerprint(user)
+
 	return 1

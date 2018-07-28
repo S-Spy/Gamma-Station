@@ -165,8 +165,25 @@
 	if((bumped && !forced) || (A in permutated))
 		return 0
 
+	if(ismob(A) && ismob(firer) && firer.skills)
+		switch(firer.skills.rangecomb)	//¬ли€ние навыка на промахи стрел€ющего
+			if(1)
+				if(prob(30))	return 0
+			if(2)
+				if(prob(25))	return 0
+			if(3)
+				if(prob(20))	return 0
+			if(4)
+				if(prob(15))	return 0
+			if(5)
+				if(prob(10))	return 0
+			if(6)
+				if(prob(5))		return 0
+
+
 	var/forcedodge = 0 // force the projectile to pass
 	var/mob/M = ismob(A) ? A : null
+
 	bumped = 1
 	if(firer && M)
 		if(!istype(A, /mob/living))

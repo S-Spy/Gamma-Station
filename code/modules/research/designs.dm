@@ -2188,7 +2188,7 @@ datum/design/secmed_hud
 	req_tech = list("magnets" = 4, "combat" = 3, "biotech" = 3)
 	build_type = PROTOLATHE
 	materials = list(MAT_METAL = 50, MAT_GLASS = 50)
-	build_path = /obj/item/clothing/glasses/hud/secmed
+	build_path = /obj/item/clothing/glasses/sunglasses/hud/secmed
 
 datum/design/mining_hud
 	name = "Geological Optical Scanner"
@@ -2521,15 +2521,6 @@ datum/design/body_warp
 	materials = list(MAT_METAL = 4500, MAT_SILVER = 1500, MAT_GOLD = 2500)
 	build_path = /obj/item/clothing/shoes/magboots
 	category = list("Equipment")
-
-/datum/design/airbag
-	name = "Personal airbag"
-	desc = "One-use protection from high-speed collisions"
-	id = "airbag"
-	req_tech = list("biotech" = 2, "bluespace" = 2)
-	build_type = PROTOLATHE
-	materials = list(MAT_METAL = 500, MAT_SILVER = 500)
-	build_path = /obj/item/airbag
 
 /////////////////////////////////////////
 ////////////Janitor Designs//////////////

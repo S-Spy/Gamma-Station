@@ -126,6 +126,12 @@ var/const/MAX_SAVE_SLOTS = 10
 	var/list/gear = list()
 	var/gear_tab = "General"
 
+
+	var/datum/skills/Skills = new/datum/skills
+	var/datum/skills/Skill_points = new/datum/skills
+
+
+
 /datum/preferences/New(client/C)
 	parent = C
 	b_type = pick(4;"O-", 36;"O+", 3;"A-", 28;"A+", 1;"B-", 20;"B+", 1;"AB-", 5;"AB+")
@@ -137,6 +143,9 @@ var/const/MAX_SAVE_SLOTS = 10
 					return
 	gender = pick(MALE, FEMALE)
 	real_name = random_name(gender)
+
+	for(var/V in Skill_points)
+		V = 0
 
 /datum/preferences/proc/ShowChoices(mob/user)
 	if(!user || !user.client)	return
@@ -158,6 +167,7 @@ var/const/MAX_SAVE_SLOTS = 10
 		dat += "<a href=\"byond://?src=\ref[user];preference=save\">Save slot</a> - "
 		dat += "<a href=\"byond://?src=\ref[user];preference=reload\">Reload slot</a><br>"
 		dat += "[menu_type=="general"?"<b>General</b>":"<a href=\"byond://?src=\ref[user];preference=general\">General</a>"] - "
+		dat += "[menu_type=="skills"?"<b>Skills</b>":"<a href=\"byond://?src=\ref[user];preference=skills\">Skills</a>"] - "
 		dat += "[menu_type=="occupation"?"<b>Occupation</b>":"<a href=\"byond://?src=\ref[user];preference=occupation\">Occupation</a>"] - "
 		dat += "[menu_type=="roles"?"<b>Roles</b>":"<a href=\"byond://?src=\ref[user];preference=roles\">Roles</a>"] - "
 		dat += "[menu_type=="glob"?"<b>Global</b>":"<a href=\"byond://?src=\ref[user];preference=glob\">Global</a>"] - "
@@ -173,6 +183,8 @@ var/const/MAX_SAVE_SLOTS = 10
 			dat += ShowGeneral(user)
 		if("occupation")
 			dat += ShowOccupation(user)
+		if("skills")
+			dat += ShowSkills(user)
 		if("roles")
 			dat += ShowRoles(user)
 		if("glob")
@@ -213,6 +225,9 @@ var/const/MAX_SAVE_SLOTS = 10
 		if("occupation")
 			menu_type = "occupation"
 
+		if("skills")
+			menu_type = "skills"
+
 		if("roles")
 			menu_type = "roles"
 
@@ -231,6 +246,9 @@ var/const/MAX_SAVE_SLOTS = 10
 
 		if("occupation")
 			process_link_occupation(user, href_list)
+
+		if("skills")
+			process_link_skills(user, href_list)
 
 		if("roles")
 			process_link_roles(user, href_list)
@@ -296,6 +314,9 @@ var/const/MAX_SAVE_SLOTS = 10
 	character.citizenship = citizenship
 	character.personal_faction = faction
 	character.religion = religion
+
+	update_skills()
+	character.skills = Skills
 
 	// Destroy/cyborgize bodyparts & organs
 

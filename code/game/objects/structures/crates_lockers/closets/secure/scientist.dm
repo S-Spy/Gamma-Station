@@ -45,4 +45,3 @@
 	new /obj/item/clothing/mask/gas/coloured(src)
 	new /obj/item/device/flash(src)
 	new /obj/item/device/remote_device/research_director(src)
-	new /obj/item/airbag(src)

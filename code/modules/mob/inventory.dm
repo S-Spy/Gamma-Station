@@ -392,7 +392,17 @@ var/list/slot_equipment_priority = list(
 	var/tempY = usr.y
 	to_chat(usr, "<span class='notice'>You start equipping the [C].</span>")
 	C.equipping = 1
+
+
 	var/equip_time = round(C.equip_time/10)
+	if(istype(C, /obj/item/clothing/suit/space) && skills)	//Влияние навыка на скорость надевания скафандра
+		switch(skills.EVA)
+			if(1)		equip_time = 30
+			if(2)		equip_time = 20
+			if(3 to 4)	equip_time = 10
+			if(5)		equip_time = 6
+			if(6)		equip_time = 2
+
 	var/i
 	for(i=1; i<=equip_time; i++)
 		sleep (10) // Check if they've moved every 10 time units

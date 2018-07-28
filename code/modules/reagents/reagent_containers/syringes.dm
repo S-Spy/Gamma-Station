@@ -66,6 +66,7 @@
 		return
 
 
+
 	switch(mode)
 		if(SYRINGE_DRAW)
 
@@ -181,6 +182,26 @@
 			if (reagents.total_volume <= 0 && mode == SYRINGE_INJECT)
 				mode = SYRINGE_DRAW
 				update_icon()
+
+	if(user.skills && user.skills.medicine==1)
+		if(prob(30))
+			if(ishuman(target))
+				var/mob/living/carbon/human/H = target
+				var/target_zone = ran_zone(check_zone(user.zone_sel.selecting, target))
+				var/obj/item/organ/external/BP = H.get_bodypart(target_zone)
+				if (!BP)		return
+				var/hit_area = BP.name
+				if((user != H) && H.check_shields(7, "the [src.name]", get_dir(user,H)))
+					return
+				if (H != user && H.getarmor(target_zone, "melee") > 5 && prob(50))
+					visible_message("\red <B>[user] tries to stab [target] in \the [hit_area] with [name], but the attack is deflected by armor!</B>")
+					qdel(src)
+					return
+				infect_limb(user, target)
+				BP.take_damage(3)
+			else
+				var/mob/living/M = target
+				M.take_bodypart_damage(3)// 7 is the same as crowbar punch
 
 /obj/item/weapon/reagent_containers/syringe/proc/syringestab(mob/living/carbon/target, mob/living/carbon/user)
 

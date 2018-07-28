@@ -234,6 +234,27 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["UI_style_color"]		>> UI_style_color
 	S["UI_style_alpha"]		>> UI_style_alpha
 
+	S["Skills_points"]		>> Skills.points
+	S["Skills_EVA"]			>> Skills.EVA
+	S["Skills_cookery"]		>> Skills.cookery
+	S["Skills_bartender"]	>> Skills.bartender
+	S["Skills_botany"]		>> Skills.botany
+	S["Skills_closecomb"]	>> Skills.closecomb
+	S["Skills_rangecomb"]	>> Skills.rangecomb
+	S["Skills_construction"]>> Skills.construction
+	S["Skills_hacking"]		>> Skills.hacking
+	S["Skills_electrical"]	>> Skills.electrical
+	S["Skills_atmospherics"]>> Skills.atmospherics
+	S["Skills_engines"]		>> Skills.engines
+	S["Skills_medicine"]	>> Skills.medicine
+	S["Skills_surgery"]		>> Skills.surgery
+	S["Skills_chemistry"]	>> Skills.chemistry
+	S["Skills_genetics"]	>> Skills.genetics
+	S["Skills_xenoscience"]	>> Skills.xenoscience
+	S["Skills_rnd"]			>> Skills.rnd
+	S["Skills_telescience"]	>> Skills.telescience
+	S["Skills_robotics"]	>> Skills.robotics
+
 	//*** FOR FUTURE UPDATES, SO YOU KNOW WHAT TO DO ***//
 	//try to fix any outdated data if necessary
 	if(needs_update >= 0)
@@ -281,6 +302,27 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	job_engsec_high = sanitize_integer(job_engsec_high, 0, 65535, initial(job_engsec_high))
 	job_engsec_med = sanitize_integer(job_engsec_med, 0, 65535, initial(job_engsec_med))
 	job_engsec_low = sanitize_integer(job_engsec_low, 0, 65535, initial(job_engsec_low))
+
+	Skills.points		= sanitize_integer(Skills.points, 1, 65535, initial(Skills.points))
+	Skills.EVA			= sanitize_integer(Skills.EVA, 1, 65535, initial(Skills.EVA))
+	Skills.cookery		= sanitize_integer(Skills.cookery, 1, 65535, initial(Skills.cookery))
+	Skills.bartender	= sanitize_integer(Skills.bartender, 1, 65535, initial(Skills.bartender))
+	Skills.botany		= sanitize_integer(Skills.botany, 1, 65535, initial(Skills.botany))
+	Skills.closecomb	= sanitize_integer(Skills.closecomb, 1, 65535, initial(Skills.closecomb))
+	Skills.rangecomb	= sanitize_integer(Skills.rangecomb, 1, 65535, initial(Skills.rangecomb))
+	Skills.construction	= sanitize_integer(Skills.construction, 1, 65535, initial(Skills.construction))
+	Skills.hacking		= sanitize_integer(Skills.hacking, 1, 65535, initial(Skills.hacking))
+	Skills.electrical	= sanitize_integer(Skills.electrical, 1, 65535, initial(Skills.electrical))
+	Skills.atmospherics	= sanitize_integer(Skills.atmospherics, 1, 65535, initial(Skills.atmospherics))
+	Skills.engines		= sanitize_integer(Skills.engines, 1, 65535, initial(Skills.engines))
+	Skills.medicine		= sanitize_integer(Skills.medicine, 1, 65535, initial(Skills.medicine))
+	Skills.surgery		= sanitize_integer(Skills.surgery, 1, 65535, initial(Skills.surgery))
+	Skills.chemistry	= sanitize_integer(Skills.chemistry, 1, 65535, initial(Skills.chemistry))
+	Skills.genetics		= sanitize_integer(Skills.genetics, 1, 65535, initial(Skills.genetics))
+	Skills.xenoscience	= sanitize_integer(Skills.xenoscience, 1, 65535, initial(Skills.xenoscience))
+	Skills.rnd			= sanitize_integer(Skills.rnd, 1, 65535, initial(Skills.rnd))
+	Skills.telescience	= sanitize_integer(Skills.telescience, 1, 65535, initial(Skills.telescience))
+	Skills.robotics		= sanitize_integer(Skills.robotics, 1, 65535, initial(Skills.robotics))
 
 	if(isnull(disabilities)) disabilities = 0
 	if(!player_alt_titles) player_alt_titles = new()
@@ -408,6 +450,27 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	S["UI_style_color"]		<< UI_style_color
 	S["UI_style_alpha"]		<< UI_style_alpha
+
+	S["Skills_points"]		<< Skills.points
+	S["Skills_EVA"]			<< Skills.EVA
+	S["Skills_cookery"]		<< Skills.cookery
+	S["Skills_bartender"]	<< Skills.bartender
+	S["Skills_botany"]		<< Skills.botany
+	S["Skills_closecomb"]	<< Skills.closecomb
+	S["Skills_rangecomb"]	<< Skills.rangecomb
+	S["Skills_construction"]<< Skills.construction
+	S["Skills_hacking"]		<< Skills.hacking
+	S["Skills_electrical"]	<< Skills.electrical
+	S["Skills_atmospherics"]<< Skills.atmospherics
+	S["Skills_engines"]		<< Skills.engines
+	S["Skills_medicine"]	<< Skills.medicine
+	S["Skills_surgery"]		<< Skills.surgery
+	S["Skills_chemistry"]	<< Skills.chemistry
+	S["Skills_genetics"]	<< Skills.genetics
+	S["Skills_xenoscience"]	<< Skills.xenoscience
+	S["Skills_rnd"]			<< Skills.rnd
+	S["Skills_telescience"]	<< Skills.telescience
+	S["Skills_robotics"]	<< Skills.robotics
 
 	return 1
 

@@ -2222,6 +2222,20 @@ datum
 	custom_metabolism = FOOD_METABOLISM
 	taste_message = "<span class='warning'>HOTNESS</span>"
 
+/datum/reagent/consumable/raw_food
+	name = "Raw Part"
+	id = "raw_food"
+	description = "This is what makes food uneatable."
+	reagent_state = LIQUID
+	color = "#B31008" // rgb: 179, 16, 8
+	custom_metabolism = FOOD_METABOLISM
+	taste_message = "<span class='warning'>It's raw food!</span>"
+
+	on_mob_life(mob/living/M)
+		if(!..())
+			return
+		M.adjustToxLoss(1 * REM)
+
 /datum/reagent/consumable/capsaicin/on_mob_life(mob/living/M)
 	if(!..())
 		return

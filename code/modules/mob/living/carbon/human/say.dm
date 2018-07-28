@@ -147,25 +147,27 @@
 			return
 		if("changeling")
 			if(mind && mind.changeling)
-				var/n_message = "<span class='changeling'><b>[mind.changeling.changelingID]:</b> [message]</span>"
-				log_say("Changeling Mind: [mind.changeling.changelingID]/[mind.name]/[key] : [message]")
+				var/n_message = message
+				log_say("Changeling Mind: [mind.changeling.changelingID]/[mind.name]/[key] : [n_message]")
 				for(var/mob/Changeling in mob_list)
 					if(Changeling.mind && Changeling.mind.changeling)
-						to_chat(Changeling, n_message)
+						to_chat(Changeling, "<span class='changeling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
 						for(var/M in Changeling.mind.changeling.essences)
-							to_chat(M, n_message)
+							to_chat(M, "<span class='changeling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
+
 					else if(isobserver(Changeling))
-						to_chat(Changeling, n_message)
+						to_chat(Changeling, "<span class='changeling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
 			return
 		if("alientalk")
 			if(mind && mind.changeling)
-				var/n_message = "<span class='shadowling'><b>[mind.changeling.changelingID]:</b> [message]</span>"
+				var/n_message = message
 				for(var/M in mind.changeling.essences)
-					to_chat(M, n_message)
-				for(var/datum/orbit/O in orbiters)
-					to_chat(O.orbiter, n_message)
-				to_chat(src, n_message)
-				log_say("Changeling Mind: [mind.changeling.changelingID]/[mind.name]/[key] : [message]")
+					to_chat(M, "<span class='shadowling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
+				for(var/mob/M in mob_list)
+					if(M in orbiters || isobserver(M))
+						to_chat(M.orbiters, isobserver(M), "<span class='shadowling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
+				to_chat(src, "<span class='shadowling'><b>[mind.changeling.changelingID]:</b> [n_message]</span>")
+				log_say("Changeling Mind: [mind.changeling.changelingID]/[mind.name]/[key] : [n_message]")
 			return
 		else
 			if(message_mode)
